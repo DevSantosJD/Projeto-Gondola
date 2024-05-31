@@ -1,0 +1,153 @@
+import customtkinter as ctk
+from tkinter import Image
+from PIL import Image
+
+#Iniciando janela principal
+def interface():
+    janela = ctk.CTk()#fg_color="#100D28"
+    janela.title("Bem vindo ao Gondola")
+    janela.geometry("700x400+500+200")
+    janela.resizable(width=False, height=False)
+
+    login_padrao= "batata"
+    senha_padrao= "frita"
+
+    #Definindo Label
+    frame = ctk.CTkFrame(janela, width=275, height=360, corner_radius= 50 )
+    frame.place(relx=0.5, rely=0.5, anchor='center')
+
+    #impede que o freame se ajusta ao label
+    frame.pack_propagate(False) 
+
+    #Criando labels e caixas de entrada
+    label = ctk.CTkLabel(frame, text="Bem Vindo ao Gondola", font=("gliker", 20))
+    label.pack(pady=20)
+
+    label_id = ctk.CTkLabel(frame, text="Nome de Acesso", font=("gliker", 14))
+    label_id.pack(pady=10)
+    
+    login = ctk.CTkEntry(frame)
+    login.pack()
+
+    label_senha = ctk.CTkLabel(frame, text="Senha", font=("gliker", 14))
+    label_senha.pack()
+
+    senha = ctk.CTkEntry(frame, show="*")
+    senha.pack()
+
+    #Função para acessár home após autenticação de usuário
+    
+    def verificar_login():
+        login_digitado= login.get()#metodo get é utilizado para captar as informações digitasdas pelo usuário no campo Entry e podemos atribuir 
+        #a uma variável
+        senha_digitada= senha.get()
+
+        if login_digitado == login_padrao and senha_digitada == senha_padrao:
+            home()
+        else:
+            print("Login ou senha Incorreto!")
+
+    #Função para acessár home após autenticação de usuário
+    def home():
+        janela_home= ctk.CTkToplevel(janela)#, fg_color="#100D28"
+        janela_home.title("Home")
+
+        # Define o tamanho da janela
+        largura = 1920
+        altura = 790
+
+        # Define a posição desejada (por exemplo, x=100, y=100)
+        x_offset = -10
+        y_offset = -5
+        janela_home.geometry(f"{largura}x{altura}+{x_offset}+{y_offset}")
+        janela_home.minsize(width= 700, height= 400)
+        janela.iconify()
+
+        frame2= ctk.CTkFrame(janela_home, width= 245, height= 385, corner_radius= 10)
+        frame2.place(relx=0.005, rely=0.14)
+
+        frame3= ctk.CTkFrame(janela_home, width=1920, height= 100)
+        frame3.place(relx=0, rely=0)
+
+        frame4= ctk.CTkFrame(janela_home, width= 1260, height= 50, corner_radius= 10)
+        frame4.place(relx= 0.170, rely= 0.14)
+
+        frame3.pack_propagate(False)
+
+        logo= ctk.CTkLabel(frame3 ,text="Gondola", font=("gliker", 50))
+        logo.place(relx=0.35, rely=0.25, )
+
+        #pesquisar compras por ID
+        def pesquisa_prod():  
+            pass
+        label_Compra= ctk.CTkLabel(frame2, text="Compra", font=("gliker", 20))
+        label_Compra.place(relx=0.35, rely=0.1)
+
+        pesquisa_compra= ctk.CTkEntry(frame2, placeholder_text="Pesquisa", justify="center", width= 200, height=30)
+        pesquisa_compra.place(relx= 0.1, rely= 0.2)
+
+        botao_prod= ctk.CTkButton(frame2, text="Pesquisar", command= pesquisa_prod)
+        botao_prod.place(relx=0.2, rely=0.35)
+        
+         #pesquisar produtos por ID
+        def pesquisa_cli():
+            pass
+        label_produto= ctk.CTkLabel(frame2, text="Produto", font=("gliker", 20))
+        label_produto.place(relx=0.35, rely=0.5)
+
+        pesquisa_produto= ctk.CTkEntry(frame2, placeholder_text="Pesquisa", justify="center", width= 200, height= 30)
+        pesquisa_produto.place(relx= 0.1, rely= 0.6)
+
+        botao_cli= ctk.CTkButton(frame2, text="Pesquisar", command= pesquisa_cli)
+        botao_cli.place(relx=0.2, rely=0.75)
+
+        #cadastro de produtod
+        def cadastro_prod():
+            tela_cadastro_prod= ctk.CTkToplevel(janela)
+            tela_cadastro_prod.title("Cadastro de Produtos")
+            tela_cadastro_prod.geometry("1265x580+320+250")
+            tela_cadastro_prod.lift()
+            tela_cadastro_prod.attributes('-topmost', True)
+
+        botao_cad_prod= ctk.CTkButton(frame4, text="Cadastro de Produtos", command= cadastro_prod, width= 435, height= 35)
+        botao_cad_prod.place(relx=0.01, rely=0.15)
+            
+        
+        #cadastro de clientes
+        def cadastro_cli():
+            tela_cadastro_cli= ctk.CTkToplevel(janela)
+            tela_cadastro_cli.title("Cadastro de Clientes")
+            tela_cadastro_cli.geometry("1265x580+320+250")
+            tela_cadastro_cli.lift()
+            tela_cadastro_cli.attributes('-topmost', True)
+            
+            
+        botao_cad_cli= ctk.CTkButton(frame4, text="Cadastro de Clientes",command= cadastro_cli, width= 435, height= 35)
+        botao_cad_cli.place(relx=0.37, rely=0.15)
+
+
+
+        def lista():
+            pass
+        prod_lista= ctk.CTkOptionMenu(frame4, values=["Todos", "PS4", "Xbox", "Produtos Geeks"], width= 200, height= 35)
+        prod_lista.place(relx=0.73, rely=0.15)
+
+        buscar_lista= ctk.CTkButton(frame4, text="Pesquisar", width= 100, height= 35)
+        buscar_lista.place(relx=0.9, rely=0.15)
+        
+    
+
+        close_sessao= ctk.CTkButton(frame3, text="Finalizar seção", command= janela.destroy)
+        close_sessao.place(relx=0.7, rely=0.4)
+                
+    #Botão utilzado para encaminhar as informções de login e verificar se estão no banco de dados
+    botao= ctk.CTkButton(frame, text="Enter", font=("gliker", 14), command=home, anchor='center')
+    botao.pack(pady=25)
+    
+    
+        
+    janela.mainloop()
+interface()
+
+
+    #placeholder_text: método utilizado para adicionar texto na caixa de entrada 
