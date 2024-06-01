@@ -1,6 +1,9 @@
 import customtkinter as ctk
 from tkinter import Image
 from PIL import Image
+from tkinter import messagebox
+import datetime
+import mysql.connector 
 
 #Iniciando janela principal
 def interface():
@@ -41,8 +44,9 @@ def interface():
         login_digitado= login.get()#metodo get é utilizado para captar as informações digitasdas pelo usuário no campo Entry e podemos atribuir 
         #a uma variável
         senha_digitada= senha.get()
+        
 
-        if login_digitado == login_padrao and senha_digitada == senha_padrao:
+        if login_digitado.strip() == login_padrao and senha_digitada == senha_padrao:
             home()
         else:
             print("Login ou senha Incorreto!")
@@ -101,25 +105,252 @@ def interface():
         botao_cli= ctk.CTkButton(frame2, text="Pesquisar", command= pesquisa_cli)
         botao_cli.place(relx=0.2, rely=0.75)
 
-        #cadastro de produtod
+        #tela cadastro de produtod
         def cadastro_prod():
             tela_cadastro_prod= ctk.CTkToplevel(janela)
             tela_cadastro_prod.title("Cadastro de Produtos")
-            tela_cadastro_prod.geometry("1265x580+320+250")
+            tela_cadastro_prod.geometry("500x580+1260+250")
             tela_cadastro_prod.lift()
             tela_cadastro_prod.attributes('-topmost', True)
+
+            #Cadastro de produtos
+            def cadastrar():
+                title = cad_titlo.get()
+                gener = cad_genero.get()
+                plataform = cad_plataforma.get()
+                lancamento = cad_data.get()
+                desenv = cad_desenvolvedora.get()
+                prec = cad_preco.get()
+                estoqu = cad_estoque.get()
+
+                # Validações simples
+                if not title or not prec or not estoqu:
+                    messagebox.showerror("Erro", "Os campos Título, Preço e Estoque são obrigatórios.")
+                    tela_cadastro_prod.lift()
+                    tela_cadastro_prod.attributes('-topmost', False)
+                    tela_cadastro_prod.after_idle(tela_cadastro_prod.attributes, '-topmost', False)
+                    return
+
+                try:
+                    # Validação para o preço e estoque serem numéricos
+                    prec = float(prec)
+                    estoqu = int(estoqu)
+
+                    # Validação para a data de lançamento
+                    datetime.datetime.strptime(lancamento, '%Y/%m/%d')
+                except ValueError as e:
+                    messagebox.showerror("Erro", f"Formato de dado inválido: {e}")
+                    return
+
+                # Conexão com o banco de dados
+                conexao = mysql.connector.connect(
+                    host='localhost',
+                    user='root',
+                    password='',
+                    database='Cadastro_Func',
+                )
+                # Cursor para executar comandos SQL
+                cursor = conexao.cursor()
+
+                # Verificar se o jogo já está cadastrado
+                verifica_comando = '''
+                SELECT COUNT(*) FROM games WHERE title = %s AND plataform = %s
+                '''
+                cursor.execute(verifica_comando, (title, plataform))
+                resultado = cursor.fetchone()
+
+                if resultado[0] > 0:
+                    messagebox.showerror("Erro", "Jogo já cadastrado.")
+                    return
+
+                # Comando SQL para inserir dados
+                comando = f'''
+                INSERT INTO games (title, gener, plataform, lancamento, desenv, prec, estoqu)
+                VALUES ("{title}", "{gener}", "{plataform}", "{lancamento}", "{desenv}", "{prec}", "{estoqu}")
+                '''
+                cursor.execute(comando)
+                conexao.commit()
+
+                # Fechando o cursor e a conexão
+                cursor.close()
+                conexao.close()
+                
+                # Aqui você pode adicionar a lógica para salvar os dados no banco de dados
+                messagebox.showinfo("Sucesso", "Jogo cadastrado com sucesso!")
+                
+
+                print(title, gener, plataform,lancamento, desenv, prec, estoqu)
+
+            titulo= ctk.CTkLabel(tela_cadastro_prod, text="Titulo", font=("gliker", 20))
+            titulo.pack(pady= 5)
+
+            cad_titlo= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_titlo.pack(pady= 5)
+
+            genero= ctk.CTkLabel(tela_cadastro_prod, text="Gênero", font=("gliker", 20))
+            genero.pack(pady= 5)
+
+            cad_genero= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_genero.pack(pady= 5)
+
+            plataforma= ctk.CTkLabel(tela_cadastro_prod, text="Plataforma", font=("gliker", 20))
+            plataforma.pack(pady= 5)
+
+            cad_plataforma= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_plataforma.pack(pady= 5)
+
+            data_lanca= ctk.CTkLabel(tela_cadastro_prod, text="Data de Lançamento", font=("gliker", 20))
+            data_lanca.pack(pady= 5)
+
+            cad_data= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_data.pack(pady= 5)
+
+            desenvolvedora= ctk.CTkLabel(tela_cadastro_prod, text="Desenvolvedora", font=("gliker", 20))
+            desenvolvedora.pack(pady= 5)
+
+            cad_desenvolvedora= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_desenvolvedora.pack(pady= 5)
+
+            preco= ctk.CTkLabel(tela_cadastro_prod, text="Preço", font=("gliker", 20))
+            preco.pack(pady= 5)
+
+            cad_preco= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_preco.pack(pady= 5)
+
+            estoque= ctk.CTkLabel(tela_cadastro_prod, text="Estoque", font=("gliker", 20))
+            estoque.pack(pady= 5)
+
+            cad_estoque= ctk.CTkEntry(tela_cadastro_prod, width= 400, height= 30)
+            cad_estoque.pack(pady= 5)
+
+
+            cadastro= ctk.CTkButton(tela_cadastro_prod, text="cadastrar", command= cadastrar, width= 135, height= 35)
+            cadastro.pack(pady= 9)
+            
 
         botao_cad_prod= ctk.CTkButton(frame4, text="Cadastro de Produtos", command= cadastro_prod, width= 435, height= 35)
         botao_cad_prod.place(relx=0.01, rely=0.15)
             
         
-        #cadastro de clientes
+        #tela cadastro de clientes
         def cadastro_cli():
             tela_cadastro_cli= ctk.CTkToplevel(janela)
             tela_cadastro_cli.title("Cadastro de Clientes")
-            tela_cadastro_cli.geometry("1265x580+320+250")
+            tela_cadastro_cli.geometry("500x580+1260+250")
             tela_cadastro_cli.lift()
             tela_cadastro_cli.attributes('-topmost', True)
+
+            def cadastro_cli():
+                import customtkinter as ctk
+
+                nome = cad_nome.get()
+                cpf = cad_cpf.get()
+                data_nascimento = cad_data_nascimento.get()
+                endereco = cad_endereco.get()
+                telefone = cad_telefone.get()
+                email = cad_email.get()
+
+                # Validações simples
+                if not nome or not cpf or not telefone:
+                    messagebox.showerror("Erro", "Os campos Nome, CPF e Telefone são obrigatórios.")
+                    tela_cadastro_cliente.lift()
+                    tela_cadastro_cliente.attributes('-topmost', False)
+                    tela_cadastro_cliente.after_idle(tela_cadastro_cliente.attributes, '-topmost', False)
+                    return
+
+                try:
+                    # Validação para o CPF e telefone serem numéricos (simplificada)
+                    cpf = int(cpf)
+                    telefone = int(telefone)
+
+                    # Validação para a data de nascimento
+                    datetime.datetime.strptime(data_nascimento, '%d/%m/%Y')
+                except ValueError as e:
+                    messagebox.showerror("Erro", f"Formato de dado inválido: {e}")
+                    return
+
+                try:
+                    # Conexão com o banco de dados
+                    conexao = mysql.connector.connect(
+                        host='localhost',
+                        user='root',
+                        password='',
+                        database='Cadastro_Clientes',
+                    )
+                    cursor = conexao.cursor()
+
+                    # Verificar se o cliente já está cadastrado
+                    verifica_comando = '''
+                    SELECT COUNT(*) FROM clientes WHERE cpf = %s
+                    '''
+                    cursor.execute(verifica_comando, (cpf,))
+                    resultado = cursor.fetchone()
+
+                    if resultado[0] > 0:
+                        messagebox.showerror("Erro", "Cliente já cadastrado.")
+                        return
+
+                    # Comando SQL para inserir dados usando placeholders
+                    comando = '''
+                    INSERT INTO clientes (nome, cpf, data_nascimento, endereco, telefone, email)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    '''
+                    dados = (nome, cpf, data_nascimento, endereco, telefone, email)
+                    cursor.execute(comando, dados)
+                    conexao.commit()
+
+                except mysql.connector.Error as err:
+                    messagebox.showerror("Erro", f"Erro ao conectar ao banco de dados: {err}")
+
+                finally:
+                    # Fechando o cursor e a conexão
+                    cursor.close()
+                    conexao.close()
+
+            # Criação da tela de cadastro de clientes
+            tela_cadastro_cliente = ctk.CTk()
+
+            nome_label = ctk.CTkLabel(tela_cadastro_cli, text="Nome", font=("gliker", 20))
+            nome_label.pack(pady=5)
+
+            cad_nome = ctk.CTkEntry(tela_cadastro_cli, width=400, height=30)
+            cad_nome.pack(pady=5)
+
+            cpf_label = ctk.CTkLabel(tela_cadastro_cli, text="CPF", font=("gliker", 20))
+            cpf_label.pack(pady=5)
+
+            cad_cpf = ctk.CTkEntry(tela_cadastro_cli, width=400, height=30)
+            cad_cpf.pack(pady=5)
+
+            data_nascimento_label = ctk.CTkLabel(tela_cadastro_cli, text="Data de Nascimento", font=("gliker", 20))
+            data_nascimento_label.pack(pady=5)
+
+            cad_data_nascimento = ctk.CTkEntry(tela_cadastro_cli, width=400, height=30)
+            cad_data_nascimento.pack(pady=5)
+
+            endereco_label = ctk.CTkLabel(tela_cadastro_cli, text="Endereço", font=("gliker", 20))
+            endereco_label.pack(pady=5)
+
+            cad_endereco = ctk.CTkEntry(tela_cadastro_cli, width=400, height=30)
+            cad_endereco.pack(pady=5)
+
+            telefone_label = ctk.CTkLabel(tela_cadastro_cli, text="Telefone", font=("gliker", 20))
+            telefone_label.pack(pady=5)
+
+            cad_telefone = ctk.CTkEntry(tela_cadastro_cli, width=400, height=30)
+            cad_telefone.pack(pady=5)
+
+            email_label = ctk.CTkLabel(tela_cadastro_cli, text="Email", font=("gliker", 20))
+            email_label.pack(pady=5)
+
+            cad_email = ctk.CTkEntry(tela_cadastro_cli, width=400, height=30)
+            cad_email.pack(pady=5)
+
+            cadastro_button = ctk.CTkButton(tela_cadastro_cli, text="Cadastrar", command=cadastro_cli, width=135, height=35)
+            cadastro_button.pack(pady=9)
+
+
+
             
             
         botao_cad_cli= ctk.CTkButton(frame4, text="Cadastro de Clientes",command= cadastro_cli, width= 435, height= 35)
@@ -145,8 +376,11 @@ def interface():
     botao.pack(pady=25)
     
     
+    
         
     janela.mainloop()
+
+
 interface()
 
 
