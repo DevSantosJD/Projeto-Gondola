@@ -4,6 +4,7 @@ from PIL import Image
 from tkinter import messagebox
 import datetime
 import mysql.connector 
+from tkinter import messagebox, ttk
 
 #Iniciando janela principal
 def interface():
@@ -85,27 +86,144 @@ def interface():
         logo.place(relx=0.35, rely=0.25, )
 
         #pesquisar compras por ID
-        def pesquisa_prod():  
-            pass
-        label_Compra= ctk.CTkLabel(frame2, text="Compra", font=("gliker", 20))
+        def pesquisa_prod():
+            nome_produto = pesquisa_compra.get().strip()
+            if not nome_produto:
+                messagebox.showinfo("Erro", "Por favor, insira o nome do produto para pesquisar.")
+                return
+
+            # Conexão com o banco de dados
+            conexao = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='Cadastro_Func',
+            )
+            cursor = conexao.cursor()
+
+            comando = "SELECT * FROM games WHERE title LIKE %s"
+            cursor.execute(comando, (f"%{nome_produto}%",))
+            resultados = cursor.fetchall()
+
+            if not resultados:
+                messagebox.showinfo("Info", "Nenhum produto encontrado.")
+                cursor.close()
+                conexao.close()
+                return
+
+            # Criar janela para exibir os resultados da pesquisa
+            resultados_janela = ctk.CTkToplevel(janela_home)
+            resultados_janela.title("Resultados da Pesquisa")
+            resultados_janela.geometry("1240x550+330+250")
+            resultados_janela.lift()
+            resultados_janela.attributes('-topmost', True)
+
+            tree = ttk.Treeview(resultados_janela, columns=('ID', 'Titulo', 'Genero', 'Plataforma', 'Lancamento', 'Desenvolvedora', 'Preco', 'Estoque'), show='headings')
+            tree.heading('ID', text='ID')
+            tree.heading('Titulo', text='Titulo')
+            tree.heading('Genero', text='Genero')
+            tree.heading('Plataforma', text='Plataforma')
+            tree.heading('Lancamento', text='Lancamento')
+            tree.heading('Desenvolvedora', text='Desenvolvedora')
+            tree.heading('Preco', text='Preco')
+            tree.heading('Estoque', text='Estoque')
+
+            for row in resultados:
+                tree.insert('', 'end', values=row)
+
+            tree.pack(fill='both', expand=True)
+
+            # Fechando o cursor e a conexão
+            cursor.close()
+            conexao.close()
+
+        # Labels e caixas de entrada para pesquisa de produtos
+        label_Compra = ctk.CTkLabel(frame2, text="Produto", font=("gliker", 20))
         label_Compra.place(relx=0.35, rely=0.1)
 
-        pesquisa_compra= ctk.CTkEntry(frame2, placeholder_text="Pesquisa", justify="center", width= 200, height=30)
-        pesquisa_compra.place(relx= 0.1, rely= 0.2)
+        pesquisa_compra = ctk.CTkEntry(frame2, placeholder_text="Pesquisa por Nome", justify="center", width=200, height=30)
+        pesquisa_compra.place(relx=0.1, rely=0.2)
 
-        botao_prod= ctk.CTkButton(frame2, text="Pesquisar", command= pesquisa_prod)
+        botao_prod = ctk.CTkButton(frame2, text="Pesquisar", command=pesquisa_prod)
         botao_prod.place(relx=0.2, rely=0.35)
-        
          #pesquisar produtos por ID
+
         def pesquisa_cli():
-            pass
-        label_produto= ctk.CTkLabel(frame2, text="Produto", font=("gliker", 20))
-        label_produto.place(relx=0.35, rely=0.5)
+            CPF = pesquisa_cliente.get()
+    
+            if not CPF:
+                messagebox.showwarning("Aviso", "Por favor, insira um CPF para a pesquisa.")
+                return
+            
+            # Conexão com o banco de dados
+            conexao = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='Cadastro_Func',
+            )
+            cursor = conexao.cursor()
+            
+            comando = "SELECT * FROM cadastro WHERE cpf = %s"
+            cursor.execute(comando, (CPF,))
+            resultados = cursor.fetchall()
+            
+            # Se não houver resultados, exibir mensagem de aviso
+            if not resultados:
+                messagebox.showinfo("Resultado", "Nenhum cliente encontrado com o CPF fornecido.")
+            else:
+                # Criar janela de resultados
+                resultado_janela = ctk.CTkToplevel(janela_home)
+                resultado_janela.title("Resultado da Pesquisa")
+                resultado_janela.geometry("1240x550+330+250")
+                resultado_janela.lift()
+                resultado_janela.attributes('-topmost', True)
+                
+                # Criar Treeview para exibir os resultados
+                tree = ttk.Treeview(resultado_janela, columns=('ID', 'Nome', 'CPF', 'Data de Nascimento', 'Rua', 'Número', 'Bairro', 'Cidade', 'Estado', 'CEP', 'Telefone', 'Email'), show='headings')
+                tree.heading('ID', text='ID')
+                tree.heading('Nome', text='Nome')
+                tree.heading('CPF', text='CPF')
+                tree.heading('Data de Nascimento', text='Data de Nascimento')
+                tree.heading('Rua', text='Rua')
+                tree.heading('Número', text='Número')
+                tree.heading('Bairro', text='Bairro')
+                tree.heading('Cidade', text='Cidade')
+                tree.heading('Estado', text='Estado')
+                tree.heading('CEP', text='CEP')
+                tree.heading('Telefone', text='Telefone')
+                tree.heading('Email', text='Email')
 
-        pesquisa_produto= ctk.CTkEntry(frame2, placeholder_text="Pesquisa", justify="center", width= 200, height= 30)
-        pesquisa_produto.place(relx= 0.1, rely= 0.6)
+                tree.column('ID', width=5)
+                tree.column('Nome', width=150)
+                tree.column('CPF', width=100)
+                tree.column('Data de Nascimento', width=50)
+                tree.column('Rua', width=150)
+                tree.column('Número', width=5)
+                tree.column('Bairro', width=100)
+                tree.column('Cidade', width=100)
+                tree.column('Estado', width=50)
+                tree.column('CEP', width=60)
+                tree.column('Telefone', width=100)
+                tree.column('Email', width=150)
 
-        botao_cli= ctk.CTkButton(frame2, text="Pesquisar", command= pesquisa_cli)
+                
+                for row in resultados:
+                    tree.insert('', 'end', values=row)
+                
+                tree.pack(fill='both', expand=True)
+            
+            # Fechar o cursor e a conexão
+            cursor.close()
+            conexao.close()
+
+        label_cliente = ctk.CTkLabel(frame2, text="Cliente", font=("gliker", 20))
+        label_cliente.place(relx=0.35, rely=0.5)
+
+        pesquisa_cliente = ctk.CTkEntry(frame2, placeholder_text="Pesquisa", justify="center", width=200, height=30)
+        pesquisa_cliente.place(relx=0.1, rely=0.6)
+
+        botao_cli = ctk.CTkButton(frame2, text="Pesquisar", command=pesquisa_cli)
         botao_cli.place(relx=0.2, rely=0.75)
 
         #tela cadastro de produtod
@@ -232,61 +350,96 @@ def interface():
         botao_cad_prod= ctk.CTkButton(frame4, text="Cadastro de Produtos", command= cadastro_prod, width= 235, height= 35)
         botao_cad_prod.place(relx=0.01, rely=0.15)
 
+        
         def editar_prod():
-            tela_edicao_prod= ctk.CTkToplevel(janela)
-            tela_edicao_prod.title("Ediçaõ de Produtos")
-            tela_edicao_prod.geometry("500x580+1260+250")
+            tela_edicao_prod = ctk.CTkToplevel(janela)
+            tela_edicao_prod.title("Edição de Produtos")
+            tela_edicao_prod.geometry("500x690+1260+100")
             tela_edicao_prod.lift()
             tela_edicao_prod.attributes('-topmost', True)
 
             def edit_prod():
-                pass
+                game_id = id_item.get()
+                novo_titulo = cad_titulo.get()
+                novo_genero = cad_genero.get()
+                nova_plataforma = cad_plataforma.get()
+                nova_data = cad_data.get()
+                nova_desenvolvedora = cad_desenvolvedora.get()
+                novo_preco = cad_preco.get()
+                novo_estoque = cad_estoque.get()
 
-            titulo= ctk.CTkLabel(tela_edicao_prod, text="Titulo", font=("gliker", 20))
-            titulo.pack(pady= 5)
+                # Conexão com o banco de dados
+                conexao = mysql.connector.connect(
+                    host='localhost',
+                    user='root',
+                    password='',
+                    database='Cadastro_Func',
+                )
+                cursor = conexao.cursor()
 
-            cad_titlo= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_titlo.pack(pady= 5)
+                # Atualizando os dados no banco de dados
+                comando = """
+                UPDATE games 
+                SET title = %s, gener = %s, plataform = %s, lancamento = %s, desenv = %s, prec = %s, estoqu = %s
+                WHERE game_id = %s
+                """
+                valores = (novo_titulo, novo_genero, nova_plataforma, nova_data, nova_desenvolvedora, novo_preco, novo_estoque, game_id)
 
-            genero= ctk.CTkLabel(tela_edicao_prod, text="Gênero", font=("gliker", 20))
-            genero.pack(pady= 5)
+                try:
+                    cursor.execute(comando, valores)
+                    conexao.commit()
+                    messagebox.showinfo("Sucesso", "Produto editado com sucesso!")
+                except Exception as e:
+                    messagebox.showerror("Erro", f"Não foi possível editar o produto. Erro: {e}")
+                finally:
+                    cursor.close()
+                    conexao.close()
 
-            cad_genero= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_genero.pack(pady= 5)
+                tela_edicao_prod.destroy()
 
-            plataforma= ctk.CTkLabel(tela_edicao_prod, text="Plataforma", font=("gliker", 20))
-            plataforma.pack(pady= 5)
+            # Criando os campos de entrada e rótulos
+            id_label = ctk.CTkLabel(tela_edicao_prod, text="ID do Produto", font=("gliker", 20))
+            id_label.pack(pady=5)
+            id_item = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            id_item.pack(pady=5)
 
-            cad_plataforma= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_plataforma.pack(pady= 5)
+            titulo = ctk.CTkLabel(tela_edicao_prod, text="Título", font=("gliker", 20))
+            titulo.pack(pady=5)
+            cad_titulo = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_titulo.pack(pady=5)
 
-            data_lanca= ctk.CTkLabel(tela_edicao_prod, text="Data de Lançamento", font=("gliker", 20))
-            data_lanca.pack(pady= 5)
+            genero = ctk.CTkLabel(tela_edicao_prod, text="Gênero", font=("gliker", 20))
+            genero.pack(pady=5)
+            cad_genero = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_genero.pack(pady=5)
 
-            cad_data= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_data.pack(pady= 5)
+            plataforma = ctk.CTkLabel(tela_edicao_prod, text="Plataforma", font=("gliker", 20))
+            plataforma.pack(pady=5)
+            cad_plataforma = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_plataforma.pack(pady=5)
 
-            desenvolvedora= ctk.CTkLabel(tela_edicao_prod, text="Desenvolvedora", font=("gliker", 20))
-            desenvolvedora.pack(pady= 5)
+            data_lanca = ctk.CTkLabel(tela_edicao_prod, text="Data de Lançamento", font=("gliker", 20))
+            data_lanca.pack(pady=5)
+            cad_data = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_data.pack(pady=5)
 
-            cad_desenvolvedora= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_desenvolvedora.pack(pady= 5)
+            desenvolvedora = ctk.CTkLabel(tela_edicao_prod, text="Desenvolvedora", font=("gliker", 20))
+            desenvolvedora.pack(pady=5)
+            cad_desenvolvedora = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_desenvolvedora.pack(pady=5)
 
-            preco= ctk.CTkLabel(tela_edicao_prod, text="Preço", font=("gliker", 20))
-            preco.pack(pady= 5)
+            preco = ctk.CTkLabel(tela_edicao_prod, text="Preço", font=("gliker", 20))
+            preco.pack(pady=5)
+            cad_preco = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_preco.pack(pady=5)
 
-            cad_preco= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_preco.pack(pady= 5)
+            estoque = ctk.CTkLabel(tela_edicao_prod, text="Estoque", font=("gliker", 20))
+            estoque.pack(pady=5)
+            cad_estoque = ctk.CTkEntry(tela_edicao_prod, width=400, height=30)
+            cad_estoque.pack(pady=5)
 
-            estoque= ctk.CTkLabel(tela_edicao_prod, text="Estoque", font=("gliker", 20))
-            estoque.pack(pady= 5)
-
-            cad_estoque= ctk.CTkEntry(tela_edicao_prod, width= 400, height= 30)
-            cad_estoque.pack(pady= 5)
-
-
-            editar_p= ctk.CTkButton(tela_edicao_prod, text="Editar", command= edit_prod, width= 135, height= 35)
-            editar_p.pack(pady= 5)
+            editar_p = ctk.CTkButton(tela_edicao_prod, text="Editar", command=edit_prod, width=135, height=35)
+            editar_p.pack(pady=5)
 
         botao_edit_prod= ctk.CTkButton(frame4, text="Editar Produtos", command= editar_prod, width= 185, height= 35)
         botao_edit_prod.place(relx=0.21, rely=0.15)
@@ -465,17 +618,57 @@ def interface():
         botao_edit_cli= ctk.CTkButton(frame4, text="Edit Cliente",command= editar_cli, width= 185, height= 35)
         botao_edit_cli.place(relx=0.57, rely=0.15)
 
+        #Exibir estoque
+        def listar_jogos(plataforma):
+            listagem_jogos = ctk.CTkToplevel(janela_home)
+            listagem_jogos.title("Lista de Jogos")
+            listagem_jogos.geometry("1240x550+330+250")
+            listagem_jogos.lift()
+            listagem_jogos.attributes('-topmost', True)
 
+            # Conexão com o banco de dados
+            conexao = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='Cadastro_Func',
+            )
+            cursor = conexao.cursor()
 
+            if plataforma == "Todos":
+                comando = "SELECT * FROM games"
+                cursor.execute(comando)
+            else:
+                comando = "SELECT * FROM games WHERE plataform = %s"
+                cursor.execute(comando, (plataforma,))
+            resultados = cursor.fetchall()
 
-        def lista():
-            pass
-        prod_lista= ctk.CTkOptionMenu(frame4, values=["Todos", "PS4", "Xbox"], width= 200, height= 35)
+            tree = ttk.Treeview(listagem_jogos, columns=('ID', 'Titulo', 'Genero', 'Plataforma', 'Lancamento', 'Desenvolvedora', 'Preco', 'Estoque'), show='headings')
+            tree.heading('ID', text='ID')
+            tree.heading('Titulo', text='Titulo')
+            tree.heading('Genero', text='Genero')
+            tree.heading('Plataforma', text='Plataforma')
+            tree.heading('Lancamento', text='Lancamento')
+            tree.heading('Desenvolvedora', text='Desenvolvedora')
+            tree.heading('Preco', text='Preco')
+            tree.heading('Estoque', text='Estoque')
+
+            for row in resultados:
+                tree.insert('', 'end', values=row)
+
+            tree.pack(fill='both', expand=True)
+
+            # Fechando o cursor e a conexão
+            cursor.close()
+            conexao.close()
+
+        # OptionMenu para selecionar a plataforma
+        prod_lista= ctk.CTkOptionMenu(frame4, values=["Todos", "PS4", "Xbox"], width=200, height=35)
         prod_lista.place(relx=0.73, rely=0.15)
 
-        buscar_lista= ctk.CTkButton(frame4, text="Pesquisar", width= 100, height= 35)
+        # Botão para buscar a lista de jogos com filtro
+        buscar_lista = ctk.CTkButton(frame4, text="Pesquisar", command=lambda: listar_jogos(prod_lista.get()), width=100, height=35)
         buscar_lista.place(relx=0.9, rely=0.15)
-        
     
 
         close_sessao= ctk.CTkButton(frame3, text="Finalizar seção", command= janela.destroy)
