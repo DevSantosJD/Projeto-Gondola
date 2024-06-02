@@ -13,6 +13,7 @@ def interface():
     janela.geometry("700x400+500+200")
     janela.resizable(width=False, height=False)
 
+
     login_padrao= "batata"
     senha_padrao= "frita"
 
@@ -79,6 +80,99 @@ def interface():
 
         frame5= ctk.CTkFrame(janela_home, width= 245, height= 245, corner_radius= 10)
         frame5.place(relx=0.005, rely=0.65)
+
+        def vender_prod():
+            # Conectar ao banco de dados
+            conexao = mysql.connector.connect(
+                host='localhost',
+                user='root',
+                password='',
+                database='Cadastro_Func',
+            )
+            cursor = conexao.cursor()
+
+            # Criar janela de vendas
+            vendas_janela = ctk.CTkToplevel(janela_home)
+            vendas_janela.title("Vender Produto")
+            vendas_janela.geometry("1240x550+330+250")
+            vendas_janela.lift()
+            vendas_janela.attributes('-topmost', True)
+
+            # Criar Treeview para selecionar o produto
+            tree = ttk.Treeview(vendas_janela, columns=('ID', 'Titulo', 'Genero', 'Plataforma', 'Lancamento', 'Desenvolvedora', 'Preco', 'Estoque'), show='headings')
+            tree.heading('ID', text='ID')
+            tree.heading('Titulo', text='Titulo')
+            tree.heading('Genero', text='Genero')
+            tree.heading('Plataforma', text='Plataforma')
+            tree.heading('Lancamento', text='Lancamento')
+            tree.heading('Desenvolvedora', text='Desenvolvedora')
+            tree.heading('Preco', text='Preco')
+            tree.heading('Estoque', text='Estoque')
+
+            # Preencher Treeview com os produtos disponíveis
+            cursor.execute("SELECT * FROM games")
+            resultados = cursor.fetchall()
+
+            for row in resultados:
+                tree.insert('', 'end', values=row)
+
+            tree.pack(fill='both', expand=True)
+
+            # Caixa de entrada para quantidade a ser vendida
+            quantidade_label = ctk.CTkLabel(vendas_janela, text="Quantidade", font=("gliker", 20))
+            quantidade_label.pack(pady=10)
+            
+            quantidade_entry = ctk.CTkEntry(vendas_janela, placeholder_text="Quantidade", justify="center", width=200, height=30)
+            quantidade_entry.pack(pady=10)
+
+            def confirmar_venda():
+                selected_item = tree.selection()
+                if not selected_item:
+                    messagebox.showwarning("Aviso", "Por favor, selecione um produto.")
+                    return
+
+                quantidade = quantidade_entry.get().strip()
+                if not quantidade.isdigit() or int(quantidade) <= 0:
+                    messagebox.showwarning("Aviso", "Por favor, insira uma quantidade válida.")
+                    return
+
+                quantidade = int(quantidade)
+                produto = tree.item(selected_item, 'values')
+                produto_id = produto[0]
+                estoque_atual = int(produto[7])
+
+                if quantidade > estoque_atual:
+                    messagebox.showwarning("Aviso", "Quantidade solicitada excede o estoque disponível.")
+                    return
+
+                novo_estoque = estoque_atual - quantidade
+
+                # Atualizar estoque no banco de dados
+                cursor.execute("UPDATE games SET estoqu = %s WHERE game_id = %s", (novo_estoque, produto_id))
+                conexao.commit()
+
+                messagebox.showinfo("Sucesso", "Venda realizada com sucesso.")
+                
+                # Atualizar Treeview
+                tree.item(selected_item, values=(*produto[:7], novo_estoque))
+
+            # Botão para confirmar a venda
+            confirmar_button = ctk.CTkButton(vendas_janela, text="Confirmar Venda", command=confirmar_venda)
+            confirmar_button.pack(pady=20)
+
+            # Fechar o cursor e a conexão ao fechar a janela
+            def on_close():
+                cursor.close()
+                conexao.close()
+                vendas_janela.destroy()
+
+            vendas_janela.protocol("WM_DELETE_WINDOW", on_close)
+
+
+
+
+        bot_vender= ctk.CTkButton(frame5, text= "Executar Venda", width= 200, height= 200, command= vender_prod)
+        bot_vender.place(relx=0.5, rely=0.5, anchor="center")
 
         frame3.pack_propagate(False)
 
@@ -610,10 +704,129 @@ def interface():
 
         def editar_cli():
             tela_cadastro_cli= ctk.CTkToplevel(janela)
-            tela_cadastro_cli.title("Cadastro de Clientes")
+            tela_cadastro_cli.title("Editar de Clientes")
             tela_cadastro_cli.geometry("500x580+1260+250")
             tela_cadastro_cli.lift()
             tela_cadastro_cli.attributes('-topmost', True)
+
+            def edit_cli():
+                cliente_id = cad_id.get()
+                novo_nome = cad_nome.get()
+                novo_cpf = cad_cpf.get()
+                nova_data_nascimento = cad_data_nascimento.get()
+                nova_rua = cad_rua.get()
+                novo_numero = cad_numero.get()
+                novo_bairro = cad_bairro.get()
+                nova_cidade = cad_cidade.get()
+                novo_estado = cad_estado.get()
+                novo_cep = cad_cep.get()
+                novo_telefone = cad_telefone.get()
+                novo_email = cad_email.get()
+
+                # Conexão com o banco de dados
+                conexao = mysql.connector.connect(
+                    host='localhost',
+                    user='root',
+                    password='',
+                    database='Cadastro_Func',
+                )
+                cursor = conexao.cursor()
+
+                # Atualizando os dados no banco de dados
+                comando = """
+                UPDATE cadastro 
+                SET nome = %s, cpf = %s, data_nascimento = %s, rua = %s, numero = %s, bairro = %s, cidade = %s, estado = %s, cep = %s, telefone = %s, email = %s
+                WHERE id_cli = %s
+                """
+                valores = (novo_nome, novo_cpf, nova_data_nascimento, nova_rua, novo_numero, novo_bairro, nova_cidade, novo_estado, novo_cep, novo_telefone, novo_email, cliente_id)
+
+                try:
+                    cursor.execute(comando, valores)
+                    conexao.commit()
+                    messagebox.showinfo("Sucesso", "Cliente editado com sucesso!")
+                except Exception as e:
+                    messagebox.showerror("Erro", f"Não foi possível editar o cliente. Erro: {e}")
+                finally:
+                    cursor.close()
+                    conexao.close()
+
+                tela_cadastro_cli.destroy()
+
+            nome_label = ctk.CTkLabel(tela_cadastro_cli, text="Nome", font=("gliker", 20))
+            nome_label.place(relx=0.19, rely= 0.05)
+
+            cad_nome = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_nome.place(relx=0.05, rely= 0.1)
+
+            cpf_label = ctk.CTkLabel(tela_cadastro_cli, text="CPF", font=("gliker", 20))
+            cpf_label.place(relx=0.7, rely= 0.05)
+
+            cad_cpf = ctk.CTkEntry(tela_cadastro_cli, width=150, height=30)
+            cad_cpf.place(relx=0.6, rely= 0.1)
+
+            data_nascimento_label = ctk.CTkLabel(tela_cadastro_cli, text="Data de Nascimento", font=("gliker", 20))
+            data_nascimento_label.place(relx=0.06, rely= 0.2)
+
+            cad_data_nascimento = ctk.CTkEntry(tela_cadastro_cli, placeholder_text= "(EX: 2010-07-05)",justify= "center", width=150, height=30)
+            cad_data_nascimento.place(relx=0.1, rely= 0.25)
+
+            rua_label = ctk.CTkLabel(tela_cadastro_cli, text="Rua", font=("gliker", 20))
+            rua_label.place(relx=0.7, rely= 0.2 )
+
+            cad_rua = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_rua.place(relx=0.55, rely= 0.25)
+
+            numero_label = ctk.CTkLabel(tela_cadastro_cli, text="Número", font=("gliker", 20))
+            numero_label.place(relx=0.16, rely= 0.35)
+
+            cad_numero = ctk.CTkEntry(tela_cadastro_cli, width=50, height=30)
+            cad_numero.place(relx=0.19, rely= 0.40)
+
+            bairro_label = ctk.CTkLabel(tela_cadastro_cli, text="Bairro", font=("gliker", 20))
+            bairro_label.place(relx=0.68, rely=0.35)
+
+            cad_bairro = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_bairro.place(relx=0.55, rely= 0.4)
+
+            cidade_label = ctk.CTkLabel(tela_cadastro_cli, text="Cidade", font=("gliker", 20))
+            cidade_label.place(relx=0.18, rely= 0.5)
+
+            cad_cidade = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_cidade.place(relx=0.05, rely= 0.55)
+
+            estado_label = ctk.CTkLabel(tela_cadastro_cli, text="Estado", font=("gliker", 20))
+            estado_label.place(relx=0.68, rely= 0.5)
+
+            cad_estado = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_estado.place(relx=0.55, rely= 0.55)
+
+            cep_label = ctk.CTkLabel(tela_cadastro_cli, text="CEP", font=("gliker", 20))
+            cep_label.place(relx=0.21, rely= 0.65)
+
+            cad_cep = ctk.CTkEntry(tela_cadastro_cli, width=150, height=30)
+            cad_cep.place(relx=0.1, rely= 0.7)
+
+            telefone_label = ctk.CTkLabel(tela_cadastro_cli, text="Telefone", font=("gliker", 20))
+            telefone_label.place(relx=0.67, rely= 0.65)
+
+            cad_telefone = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_telefone.place(relx=0.55, rely= 0.7) 
+
+            email_label = ctk.CTkLabel(tela_cadastro_cli, text="Email", font=("gliker", 20))
+            email_label.place(relx=0.2, rely= 0.8)
+
+            cad_email = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_email.place(relx=0.05, rely= 0.85)
+
+            id_label = ctk.CTkLabel(tela_cadastro_cli, text="ID", font=("gliker", 20))
+            id_label.place(relx=0.74, rely= 0.8)
+
+            cad_id = ctk.CTkEntry(tela_cadastro_cli, width=200, height=30)
+            cad_id.place(relx=0.55, rely= 0.85)
+
+            cadastro_button = ctk.CTkButton(tela_cadastro_cli, text="Editar", command=edit_cli, width=135, height=35)
+            cadastro_button.place(relx=0.38, rely= 0.92)
+
 
         botao_edit_cli= ctk.CTkButton(frame4, text="Edit Cliente",command= editar_cli, width= 185, height= 35)
         botao_edit_cli.place(relx=0.57, rely=0.15)
@@ -675,8 +888,9 @@ def interface():
         close_sessao.place(relx=0.7, rely=0.4)
                 
     #Botão utilzado para encaminhar as informções de login e verificar se estão no banco de dados
-    botao= ctk.CTkButton(frame, text="Enter", font=("gliker", 14), command=home, anchor='center')
+    botao= ctk.CTkButton(frame, text="Enter", font=("gliker", 14), command=home, anchor='center', )
     botao.pack(pady=25)
+    
     
     
     
