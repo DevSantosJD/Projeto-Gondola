@@ -14,8 +14,8 @@ def interface():
     janela.resizable(width=False, height=False)
 
 
-    login_padrao= "batata"
-    senha_padrao= "frita"
+    login_padrao= "supervisor"
+    senha_padrao= "@supervisor"
 
     #Definindo Label
     frame = ctk.CTkFrame(janela, width=275, height=360, corner_radius= 50 )
@@ -94,7 +94,7 @@ def interface():
             # Criar janela de vendas
             vendas_janela = ctk.CTkToplevel(janela_home)
             vendas_janela.title("Vender Produto")
-            vendas_janela.geometry("1240x550+330+250")
+            vendas_janela.geometry("1240x750+330+50")
             vendas_janela.lift()
             vendas_janela.attributes('-topmost', True)
 
@@ -116,14 +116,24 @@ def interface():
             for row in resultados:
                 tree.insert('', 'end', values=row)
 
-            tree.pack(fill='both', expand=True)
+            tree.grid(row=0, column=0, rowspan=6, columnspan=2, sticky='nsew', padx=10, pady=10)
 
-            # Caixa de entrada para quantidade a ser vendida
+            # Label e Entry para quantidade
             quantidade_label = ctk.CTkLabel(vendas_janela, text="Quantidade", font=("gliker", 20))
-            quantidade_label.pack(pady=10)
+            quantidade_label.grid(row=10, column=0, padx=0.02, pady=0.8)
             
-            quantidade_entry = ctk.CTkEntry(vendas_janela, placeholder_text="Quantidade", justify="center", width=200, height=30)
-            quantidade_entry.pack(pady=10)
+            quantidade_entry = ctk.CTkEntry(vendas_janela, placeholder_text="Quantidade", justify="center", width=100, height=10)
+            quantidade_entry.grid(row=15, column=0, padx=0.2, pady=1)
+
+            # Label e OptionMenu para forma de pagamento
+            forma_pagamento_label = ctk.CTkLabel(vendas_janela, text="Forma de Pagamento", font=("gliker", 20))
+            forma_pagamento_label.grid(row=10, column=1, padx=0.02, pady=10)
+
+            
+
+            formas_pagamento = ["Cartão de Crédito", "Cartão de Débito", "Dinheiro"]
+            forma_pagamento_menu = ctk.CTkOptionMenu(vendas_janela, values=formas_pagamento)
+            forma_pagamento_menu.grid(row=15, column=1, padx=0.2, pady=15)
 
             def confirmar_venda():
                 selected_item = tree.selection()
@@ -147,8 +157,17 @@ def interface():
 
                 novo_estoque = estoque_atual - quantidade
 
+                # Capturar a forma de pagamento selecionada
+                forma_pagamento = forma_pagamento_menu.get()
+
                 # Atualizar estoque no banco de dados
                 cursor.execute("UPDATE games SET estoqu = %s WHERE game_id = %s", (novo_estoque, produto_id))
+                conexao.commit()
+
+                # Registrar venda no banco de dados
+                data_venda = datetime
+                comando_venda = "INSERT INTO vendas (produto_id, quantidade, forma_pagamento, data_venda) VALUES (%s, %s, %s, %s)"
+                cursor.execute(comando_venda, (produto_id, quantidade, forma_pagamento, data_venda))
                 conexao.commit()
 
                 messagebox.showinfo("Sucesso", "Venda realizada com sucesso.")
@@ -158,7 +177,7 @@ def interface():
 
             # Botão para confirmar a venda
             confirmar_button = ctk.CTkButton(vendas_janela, text="Confirmar Venda", command=confirmar_venda)
-            confirmar_button.pack(pady=20)
+            confirmar_button.grid(row=16, column=0, padx=0.1, pady=3)
 
             # Fechar o cursor e a conexão ao fechar a janela
             def on_close():
@@ -168,10 +187,8 @@ def interface():
 
             vendas_janela.protocol("WM_DELETE_WINDOW", on_close)
 
-
-
-
-        bot_vender= ctk.CTkButton(frame5, text= "Executar Venda", width= 200, height= 200, command= vender_prod)
+        # Botão para abrir a janela de vendas
+        bot_vender = ctk.CTkButton(frame5, text="Executar Venda", width=200, height=200, command=vender_prod)
         bot_vender.place(relx=0.5, rely=0.5, anchor="center")
 
         frame3.pack_propagate(False)
@@ -876,7 +893,7 @@ def interface():
             conexao.close()
 
         # OptionMenu para selecionar a plataforma
-        prod_lista= ctk.CTkOptionMenu(frame4, values=["Todos", "PS4", "Xbox"], width=200, height=35)
+        prod_lista= ctk.CTkOptionMenu(frame4, values=["Todos", "PS4", "Xbox One"], width=200, height=35)
         prod_lista.place(relx=0.73, rely=0.15)
 
         # Botão para buscar a lista de jogos com filtro
@@ -888,7 +905,7 @@ def interface():
         close_sessao.place(relx=0.7, rely=0.4)
                 
     #Botão utilzado para encaminhar as informções de login e verificar se estão no banco de dados
-    botao= ctk.CTkButton(frame, text="Enter", font=("gliker", 14), command=home, anchor='center', )
+    botao= ctk.CTkButton(frame, text="Enter", font=("gliker", 14), command=verificar_login, anchor='center', )
     botao.pack(pady=25)
     
     
