@@ -37,16 +37,12 @@ Sinta-se à vontade para explorar, modificar e contribuir! Estou aberto a sugest
 4. Envie para o repositório remoto: `git push origin feature/nome-da-sua-feature`
 5. Abra um Pull Request!
 
-## 📄 Licença
-
-Este projeto está licenciado sob a [MIT License](LICENSE).
-
 ## 📫 Contato
 
 Para dúvidas ou sugestões, entre em contato:
 
-- **Email:** seu-email@exemplo.com
-- **LinkedIn:** [Seu LinkedIn](https://www.linkedin.com/in/seu-perfil/)
+- **Email:** jardel.santos.23@outlook.com
+- **LinkedIn:** [Seu LinkedIn](https://www.linkedin.com/in/jardel-santos-da-silva-194a03212/)
 
 ---
 
