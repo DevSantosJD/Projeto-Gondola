@@ -42,7 +42,7 @@ Sinta-se à vontade para explorar, modificar e contribuir! Estou aberto a sugest
 Para dúvidas ou sugestões, entre em contato:
 
 - **Email:** jardel.santos.23@outlook.com
-- **LinkedIn:** [Seu LinkedIn](https://www.linkedin.com/in/jardel-santos-da-silva-194a03212/)
+- **LinkedIn:** [Jardel Santos Da Silva](https://www.linkedin.com/in/jardel-santos-da-silva-194a03212/)
 
 ---
 
